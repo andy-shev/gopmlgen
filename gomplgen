@@ -20,6 +20,7 @@ import urllib2
 from xml.etree import cElementTree
 
 import gdata.youtube.service
+import gdata.photos.service
 
 LOG = logging.getLogger(os.path.basename(sys.argv[0]))
 
@@ -86,6 +87,20 @@ class YouTubeService(Service):
             if entry.GetSubscriptionType() == 'channel':
                 href = entry.feed_link[0].href.replace('api', 'base')
                 yield entry.title.text, href
+
+class PicasaWebService(Service):
+    def __init__(self):
+        self.host = "picasaweb.google.com"
+        self.client = gdata.photos.service.PhotosService()
+
+    def _login(self, login, passwd):
+        self.client.ClientLogin(login, passwd)
+
+    def _opml(self):
+        feed = self.client.GetContacts()
+        for entry in feed.entry:
+            href = entry.GetFeedLink().href.replace('api', 'base')
+            yield entry.title.text, href
 
 class OPMLGen(object):
     def __init__(self):

@@ -128,23 +128,28 @@ class OPMLGen(object):
                 return getattr(self.module, srv + "Service")()
         raise OPMLGenError("Service '%s' doesn't support" % name)
 
-def save_to_file(service, output_fn, self=False, sort=False):
+def save_to_file(service, opts):
     out = []
     out.append("<?xml version='1.0'?>")
     out.append("<opml version='1.1'><head>")
     out.append("</head><body>")
-    if sort:
-        for desc, href in sorted(service.opml(self),
+    if opts.subfolder is not None:
+        out.append('<outline title="%s" text="%s">' %
+                (opts.subfolder, opts.subfolder))
+    if opts.sort:
+        for desc, href in sorted(service.opml(opts.self),
                 key=operator.itemgetter(1)):
             out.append('<outline text="%s" xmlURL="%s" />' % (desc, href))
     else:
-        for desc, href in service.opml(self):
+        for desc, href in service.opml(opts.self):
             out.append('<outline text="%s" xmlURL="%s" />' % (desc, href))
+    if opts.subfolder is not None:
+        out.append("</outline>")
     out.append("</body></opml>")
-    if output_fn == '-':
+    if opts.output == '-':
         fd = sys.stdout
     else:
-        fd = open(output_fn, 'w')
+        fd = open(opts.output, 'w')
 
     for line in out:
         fd.write("%s\n" % line.encode('utf-8'))
@@ -162,6 +167,8 @@ def main(argv):
             help="sort output alphabetically")
     parser.add_option("--self", dest="self", action="store_true", default=False,
             help="add self feed to output")
+    parser.add_option("--subfolder", dest="subfolder",
+            help="put all items under given SUBFOLDER")
     parser.add_option("--output", dest="output", default="-",
             help="save output to the FILE")
 
@@ -191,7 +198,7 @@ def main(argv):
         return 1
 
     try:
-        save_to_file(service, opts.output, opts.self, opts.sort)
+        save_to_file(service, opts)
     except OPMLGenError, err:
         LOG.error(str(err))
         return 1

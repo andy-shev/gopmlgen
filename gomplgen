@@ -7,7 +7,7 @@ OPML generator for Google Reader
 """
 
 __author__ = "Andy Shevchenko <andy.shevchenko@gmail.com>"
-__version__ = "0.0.1"
+__version__ = "0.0.2"
 __license__ = "GPLv2"
 
 import os
@@ -39,6 +39,7 @@ class Service(object):
     def __init__(self):
         self.name = self.__class__.__name__
         self.host = None
+        self.ownfeed = False
 
     def login(self):
         try:
@@ -51,8 +52,9 @@ class Service(object):
         except AttributeError:
             raise OPMLGenError("Login method is undefined")
 
-    def opml(self):
+    def opml(self, ownfeed=False):
         self.login()
+        self.ownfeed = ownfeed
         try:
             return self._opml()
         except AttributeError:
@@ -87,6 +89,11 @@ class YouTubeService(Service):
             if entry.GetSubscriptionType() == 'channel':
                 href = entry.feed_link[0].href.replace('api', 'base')
                 yield entry.title.text, href
+        if self.ownfeed:
+            text = feed.title.text.replace("Subscriptions of",
+                    "Videos published by :")
+            href = feed.GetFeedLink().href
+            yield text, href.replace('api', 'base').replace('/contacts', '')
 
 class PicasaWebService(Service):
     def __init__(self):
@@ -101,6 +108,10 @@ class PicasaWebService(Service):
         for entry in feed.entry:
             href = entry.GetFeedLink().href.replace('api', 'base')
             yield entry.title.text, href
+        if self.ownfeed:
+            text = feed.title.text
+            href = feed.GetFeedLink().href
+            yield text, href.replace('api', 'base').replace('/contacts', '')
 
 class OPMLGen(object):
     def __init__(self):
@@ -117,16 +128,17 @@ class OPMLGen(object):
                 return getattr(self.module, srv + "Service")()
         raise OPMLGenError("Service '%s' doesn't support" % name)
 
-def save_to_file(service, output_fn, sort=False):
+def save_to_file(service, output_fn, self=False, sort=False):
     out = []
     out.append("<?xml version='1.0'?>")
     out.append("<opml version='1.1'><head>")
     out.append("</head><body>")
     if sort:
-        for desc, href in sorted(service.opml(), key=operator.itemgetter(1)):
+        for desc, href in sorted(service.opml(self),
+                key=operator.itemgetter(1)):
             out.append('<outline text="%s" xmlURL="%s" />' % (desc, href))
     else:
-        for desc, href in service.opml():
+        for desc, href in service.opml(self):
             out.append('<outline text="%s" xmlURL="%s" />' % (desc, href))
     out.append("</body></opml>")
     if output_fn == '-':
@@ -148,6 +160,8 @@ def main(argv):
             help="list supported services")
     parser.add_option("--sort", dest="sort", action="store_true", default=False,
             help="sort output alphabetically")
+    parser.add_option("--self", dest="self", action="store_true", default=False,
+            help="add self feed to output")
     parser.add_option("--output", dest="output", default="-",
             help="save output to the FILE")
 
@@ -177,7 +191,7 @@ def main(argv):
         return 1
 
     try:
-        save_to_file(service, opts.output, opts.sort)
+        save_to_file(service, opts.output, opts.self, opts.sort)
     except OPMLGenError, err:
         LOG.error(str(err))
         return 1

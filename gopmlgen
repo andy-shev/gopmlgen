@@ -7,7 +7,7 @@ OPML generator for Google Reader
 """
 
 __author__ = "Andy Shevchenko <andy.shevchenko@gmail.com>"
-__version__ = "0.0.3"
+__version__ = "0.0.4"
 __license__ = "GPLv2"
 
 import os
@@ -98,8 +98,9 @@ class YouTubeService(Service):
         if self.ownfeed:
             text = feed.title.text.replace("Subscriptions of",
                     "Videos published by :")
-            href = feed.GetFeedLink().href
-            yield text, href.replace('api', 'base').replace('/contacts', '')
+            href = feed.GetFeedLink().href.replace('api', 'base')
+            yield text, href.replace('/contacts', '').replace('subscriptions',
+                    'uploads')
 
 class PicasaWebService(Service):
     """ Class for PicasaWeb service """

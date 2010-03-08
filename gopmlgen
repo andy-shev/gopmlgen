@@ -25,6 +25,7 @@ import gdata.photos.service
 LOG = logging.getLogger(os.path.basename(sys.argv[0]))
 
 class OPMLGenError(Exception):
+    """ Custom Exception class """
     pass
 
 def get_auth_data(host):
@@ -32,16 +33,18 @@ def get_auth_data(host):
     try:
         dotnetrc = netrc.netrc()
     except (IOError, netrc.NetrcParseError), err:
-        raise OPMLGenError("Can't read ~/.netrc file")
+        raise OPMLGenError("Can't read ~/.netrc file: %s" % str(err))
     return dotnetrc.authenticators(host)
 
 class Service(object):
+    """ Virtual base class for services """
     def __init__(self):
         self.name = self.__class__.__name__
         self.host = None
         self.ownfeed = False
 
     def login(self):
+        """ Login to service """
         try:
             login, _, passwd = get_auth_data(self.host)
         except TypeError:
@@ -53,6 +56,7 @@ class Service(object):
             raise OPMLGenError("Login method is undefined")
 
     def opml(self, ownfeed=False):
+        """ Login to service and generate OPML """
         self.login()
         self.ownfeed = ownfeed
         try:
@@ -62,6 +66,7 @@ class Service(object):
                     self.name)
 
 class LiveJournalService(Service):
+    """ Class for LiveJournal service """
     def __init__(self):
         self.host = "www.livejournal.com"
         self.url = None
@@ -76,6 +81,7 @@ class LiveJournalService(Service):
             yield elem.get('text'), elem.get('xmlURL')
 
 class YouTubeService(Service):
+    """ Class for YouTube service """
     def __init__(self):
         self.host = "www.youtube.com"
         self.client = gdata.youtube.service.YouTubeService()
@@ -96,6 +102,7 @@ class YouTubeService(Service):
             yield text, href.replace('api', 'base').replace('/contacts', '')
 
 class PicasaWebService(Service):
+    """ Class for PicasaWeb service """
     def __init__(self):
         self.host = "picasaweb.google.com"
         self.client = gdata.photos.service.PhotosService()
@@ -114,21 +121,25 @@ class PicasaWebService(Service):
             yield text, href.replace('api', 'base').replace('/contacts', '')
 
 class OPMLGen(object):
+    """ Common class to cover all available services """
     def __init__(self):
         self.module = sys.modules[globals()['__name__']]
 
     def list_supported_services(self):
+        """ List supported services """
         for attr in dir(self.module):
             if attr.endswith('Service') and attr != 'Service':
                 yield attr.replace('Service', '')
 
     def get_service_by_name(self, name):
+        """ Get Service object by its name """
         for srv in self.list_supported_services():
             if srv.lower() == name.lower():
                 return getattr(self.module, srv + "Service")()
         raise OPMLGenError("Service '%s' doesn't support" % name)
 
 def save_to_file(service, opts):
+    """ Save items to given file """
     out = []
     out.append("<?xml version='1.0'?>")
     out.append("<opml version='1.1'><head>")
@@ -146,6 +157,7 @@ def save_to_file(service, opts):
     if opts.subfolder is not None:
         out.append("</outline>")
     out.append("</body></opml>")
+
     if opts.output == '-':
         fd = sys.stdout
     else:
@@ -197,6 +209,7 @@ def main(argv):
         LOG.error(str(err))
         return 1
 
+    # Iterrate through items and write them to file
     try:
         save_to_file(service, opts)
     except OPMLGenError, err:

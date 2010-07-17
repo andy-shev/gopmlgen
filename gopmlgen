@@ -17,6 +17,7 @@ import netrc
 from optparse import OptionParser
 import operator
 import urllib2
+import urllib
 from xml.etree import cElementTree as ElementTree
 
 import gdata.youtube.service
@@ -159,6 +160,31 @@ class GoogleReader(gdata.service.GDataService):
                     item.update(attr)
             data.append(item)
         return data
+
+    def AddSubscription(self, href, desc, label=None):
+        """Add new subscription into the service."""
+        token = self.Get('/reader/api/0/token', converter=lambda x: x)
+
+        post_params = {
+            's' : 'feed/%s' % href,
+            't' : desc,
+            'ac': 'subscribe',
+            'T' : token,
+        }
+
+        if label:
+            post_params['a'] = 'user/-/label/%s' % label
+
+        postdata = urllib.urlencode(post_params)
+
+        # Override Content-Type header. There is an issue #391 in
+        # gdata-python-client.
+        extra_headers = {
+            'Content-Type': 'application/x-www-form-urlencoded',
+        }
+
+        return self.Post(postdata, '/reader/api/0/subscription/edit',
+            extra_headers=extra_headers, converter=lambda x: x)
 
 class OPMLGen(object):
     """ Common class to cover all available services """

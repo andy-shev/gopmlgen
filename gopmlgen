@@ -17,7 +17,7 @@ import netrc
 from optparse import OptionParser
 import operator
 import urllib2
-from xml.etree import cElementTree
+from xml.etree import cElementTree as ElementTree
 
 import gdata.youtube.service
 import gdata.photos.service
@@ -76,7 +76,7 @@ class LiveJournalService(Service):
 
     def _opml(self):
         ufd = urllib2.urlopen(self.url)
-        root = cElementTree.parse(ufd)
+        root = ElementTree.parse(ufd)
         for elem in root.findall('body/outline'):
             yield elem.get('text'), elem.get('xmlURL')
 
@@ -138,9 +138,8 @@ class GoogleReader(gdata.service.GDataService):
 
     def GetSubscriptionList(self):
         """Get a list of subscriptions."""
-        result = self.Get('/reader/api/0/subscription/list')
-
-        root = cElementTree.fromstring(result)
+        root = self.Get('/reader/api/0/subscription/list',
+            converter=ElementTree.fromstring)
 
         def get_text_by_attr(elem, xpath, attr, names):
             for xpe in elem.findall(xpath):

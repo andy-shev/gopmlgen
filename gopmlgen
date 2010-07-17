@@ -327,17 +327,18 @@ def main(argv):
     if opts.diff:
         try:
             removed, added = diff(service, opts)
-            print "Removed(%d):" % len(removed)
-            for href, desc in removed.iteritems():
-                print "\t%s - %s" % (href, desc)
-            print
-            print "Added(%d):" % len(added)
-            for href, desc in added.iteritems():
-                print "\t%s - %s" % (href, desc)
-            return 0
         except OPMLGenError, err:
             LOG.error(str(err))
             return 1
+
+        print "Removed(%d):" % len(removed)
+        for href, desc in removed.iteritems():
+            print "\t%s - %s" % (href, desc)
+        print
+        print "Added(%d):" % len(added)
+        for href, desc in added.iteritems():
+            print "\t%s - %s" % (href, desc)
+        return 0
 
     # Iterrate through items and write them to file
     try:

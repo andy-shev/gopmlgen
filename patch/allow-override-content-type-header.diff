@@ -1,0 +1,15 @@
+diff -r 3eb3dbd1fc09 src/gdata/service.py
+--- a/src/gdata/service.py	Wed Jul 14 15:49:58 2010 -0400
++++ b/src/gdata/service.py	Sun Jul 18 01:14:35 2010 +0300
+@@ -1315,8 +1315,9 @@
+ 
+     else:
+       http_data = data
+-      content_type = 'application/atom+xml'
+-      extra_headers['Content-Type'] = content_type
++      if 'Content-Type' not in extra_headers:
++        content_type = 'application/atom+xml'
++        extra_headers['Content-Type'] = content_type
+       server_response = self.request(verb, uri, data=http_data,
+           headers=extra_headers, url_params=url_params)
+       result_body = server_response.read()

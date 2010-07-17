@@ -121,6 +121,46 @@ class PicasaWebService(Service):
             href = feed.GetFeedLink().href
             yield text, href.replace('api', 'base').replace('/contacts', '')
 
+class GoogleReader(gdata.service.GDataService):
+    """Service for Google Reader."""
+    userUri = '/reader/atom/user/%s'
+
+    def __init__(self, email=None, password=None, source=None,
+                 server='www.google.com', additional_headers=None,
+                 **kwargs):
+        """Set necessary parameters."""
+        self.email = email
+        self.client = source
+        gdata.service.GDataService.__init__(self,
+            email=email, password=password, service='reader', source=source,
+            server=server, additional_headers=additional_headers,
+            **kwargs)
+
+    def GetSubscriptionList(self):
+        """Get a list of subscriptions."""
+        result = self.Get('/reader/api/0/subscription/list')
+
+        root = cElementTree.fromstring(result)
+
+        def get_text_by_attr(elem, xpath, attr, names):
+            for xpe in elem.findall(xpath):
+                attr_name = xpe.get(attr)
+                if attr_name in names:
+                    yield { attr_name: xpe.text }
+
+        data = []
+        for elem in root.findall('list/object'):
+            item = {}
+            for attr in get_text_by_attr(elem, 'string', 'name',
+                ('id', 'title')):
+                item.update(attr)
+            for catelem in elem.findall('list/object'):
+                for attr in get_text_by_attr(catelem, 'string', 'name',
+                    ('label', )):
+                    item.update(attr)
+            data.append(item)
+        return data
+
 class OPMLGen(object):
     """ Common class to cover all available services """
     def __init__(self):

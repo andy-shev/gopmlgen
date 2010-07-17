@@ -208,6 +208,31 @@ def save_to_file(service, opts):
         fd.write("%s\n" % line.encode('utf-8'))
     fd.close()
 
+def diff(service, opts):
+    host = 'reader.google.com'
+    try:
+        login, _, passwd = get_auth_data(host)
+    except TypeError:
+        raise OPMLGenError("Can't get auth data for host '%s'" % host)
+
+    gr = GoogleReader()
+    gr.ClientLogin(login, passwd)
+
+    old = {}
+    for item in gr.GetSubscriptionList():
+        if item.get('label', None) == opts.subfolder:
+            href = item.get('id', '').replace('feed/', '', 1)
+            old[href] = item.get('title', '')
+
+    new = {}
+    for desc, href in service.opml(opts.self):
+        if href in old:
+            old.pop(href, '')
+        else:
+            new[href] = desc
+
+    return old, new
+
 def main(argv):
     """ Main rountine """
     parser = OptionParser()
@@ -222,6 +247,8 @@ def main(argv):
             help="add self feed to output")
     parser.add_option("--subfolder", dest="subfolder",
             help="put all items under given SUBFOLDER")
+    parser.add_option("--diff", dest="diff", action="store_true", default=False,
+            help="get difference between subscriptions of Google Reader and given service")
     parser.add_option("--output", dest="output", default="-",
             help="save output to the FILE")
 
@@ -249,6 +276,22 @@ def main(argv):
     except OPMLGenError, err:
         LOG.error(str(err))
         return 1
+
+    # Handle '--diff'
+    if opts.diff:
+        try:
+            removed, added = diff(service, opts)
+            print "Removed(%d):" % len(removed)
+            for href, desc in removed.iteritems():
+                print "\t%s - %s" % (href, desc)
+            print
+            print "Added(%d):" % len(added)
+            for href, desc in added.iteritems():
+                print "\t%s - %s" % (href, desc)
+            return 0
+        except OPMLGenError, err:
+            LOG.error(str(err))
+            return 1
 
     # Iterrate through items and write them to file
     try:

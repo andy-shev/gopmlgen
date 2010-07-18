@@ -1,0 +1,70 @@
+THE PURPOSE
+===========
+
+This program helps to update subscriptions in Google Reader. The purpose is to
+sync actual subscriptions on other services like LiveJournal, PicasaWeb, or
+YouTube into Google Reader.
+
+
+HOW TO RUN
+==========
+
+There are many options in command line (we could easily get them with --help):
+
+	$ gomplgen --help
+
+Because all services require authentication the script takes login and password
+pairs from ~/.netrc file. 
+
+Example of ~/.netrc:
+
+	machine reader.google.com login LOGIN password PASSWORD
+	machine picasaweb.google.com login LOGIN password PASSWORD
+	machine www.youtube.com login LOGIN password PASSWORD
+	machine www.livejournal.com login LOGIN password PASSWORD
+
+First of all, we need to check what services are supported by script:
+
+	$ gopmlgen --list
+        	LiveJournal
+        	PicasaWeb
+        	YouTube
+
+After we could get OPML file from any of above services:
+
+	$ gopmlgen --service youtube 
+		<?xml version='1.0'?>
+		<opml version='1.1'><head>
+		</head><body>
+		<outline text="Videos published by : regizzzzzz" xmlURL="http://gdata.youtube.com/feeds/base/users/regizzzzzz/uploads" />
+		<outline text="Videos published by : ibkinkun" xmlURL="http://gdata.youtube.com/feeds/base/users/ibkinkun/uploads" />
+		<outline text="Videos published by : allabelobrova" xmlURL="http://gdata.youtube.com/feeds/base/users/allabelobrova/uploads" />
+		...
+		</body></opml>
+
+
+Check the difference and update:
+	$ gopmlgen --service youtube --subfolder 'YouTube' --diff
+	Removed(1):
+	        http://gdata.youtube.com/feeds/base/users/0andriy/subscriptions - Videos published by : 0andriy
+
+	$ gopmlgen --service youtube --subfolder 'YouTube' --diff --self --update all
+	Removed(1):
+	       	http://gdata.youtube.com/feeds/base/users/0andriy/subscriptions - Videos published by : 0andriy
+
+	Added(1):
+	        http://gdata.youtube.com/feeds/base/users/0andriy/uploads - Videos published by : 0andriy
+
+
+LICENSE
+=======
+
+The script and all suplementary files are licensed under GPLv2 terms.
+
+
+FEEDBACK
+========
+
+Don't hesitate to drop me email to Andy Shevchenko <andy.shevchenko@gmail.com>
+with any suggestions, patches, whatever.
+

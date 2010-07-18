@@ -46,14 +46,14 @@ After we could get OPML file from any of above services:
 Check the difference and update:
 	$ gopmlgen --service youtube --subfolder 'YouTube' --diff
 	Removed(1):
-	        http://gdata.youtube.com/feeds/base/users/0andriy/subscriptions - Videos published by : 0andriy
+		http://gdata.youtube.com/feeds/base/users/0andriy/subscriptions - Videos published by : 0andriy
 
 	$ gopmlgen --service youtube --subfolder 'YouTube' --diff --self --update all
 	Removed(1):
-	       	http://gdata.youtube.com/feeds/base/users/0andriy/subscriptions - Videos published by : 0andriy
+		http://gdata.youtube.com/feeds/base/users/0andriy/subscriptions - Videos published by : 0andriy
 
 	Added(1):
-	        http://gdata.youtube.com/feeds/base/users/0andriy/uploads - Videos published by : 0andriy
+		http://gdata.youtube.com/feeds/base/users/0andriy/uploads - Videos published by : 0andriy
 
 
 LICENSE

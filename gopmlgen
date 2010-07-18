@@ -277,6 +277,14 @@ def diff(service, opts):
         else:
             new[href] = desc
 
+    if opts.update in ('old', 'all'):
+        for href in old:
+            gr.RemoveSubscription(href)
+
+    if opts.update in ('new', 'all'):
+        for href in new:
+            gr.AddSubscription(href, new[href].encode('utf-8'), opts.subfolder)
+
     return old, new
 
 def main(argv):
@@ -295,6 +303,8 @@ def main(argv):
             help="put all items under given SUBFOLDER")
     parser.add_option("--diff", dest="diff", action="store_true", default=False,
             help="get difference between subscriptions of Google Reader and given service")
+    parser.add_option("--update", dest="update", default="none",
+            help="update subscriptions (old, new, all)")
     parser.add_option("--output", dest="output", default="-",
             help="save output to the FILE")
 
@@ -306,6 +316,11 @@ def main(argv):
     handler = logging.StreamHandler(sys.stderr)
     handler.setFormatter(formatter)
     LOG.addHandler(handler)
+
+    # Check --update option:
+    if opts.update not in ('none', 'old', 'new', 'all'):
+        LOG.fatal("Unknown parameter '%s' for option --update" % opts.update)
+        return 1
 
     # Initialize main object
     opmlgen = OPMLGen()
@@ -324,20 +339,30 @@ def main(argv):
         return 1
 
     # Handle '--diff'
-    if opts.diff:
+    if opts.diff or opts.update != 'none':
         try:
             removed, added = diff(service, opts)
         except OPMLGenError, err:
             LOG.error(str(err))
             return 1
 
-        print "Removed(%d):" % len(removed)
-        for href, desc in removed.iteritems():
-            print "\t%s - %s" % (href, desc)
-        print
-        print "Added(%d):" % len(added)
-        for href, desc in added.iteritems():
-            print "\t%s - %s" % (href, desc)
+        if opts.diff or opts.update != 'new':
+            length = len(removed)
+            if length:
+                LOG.info("Removed %d items" % length)
+                print "Removed(%d):" % length
+                for href, desc in removed.iteritems():
+                    print "\t%s - %s" % (href, desc)
+                print
+
+        if opts.diff or opts.update != 'old':
+            length = len(added)
+            if length:
+                LOG.info("Added %d items" % length)
+                print "Added(%d):" % length
+                for href, desc in added.iteritems():
+                    print "\t%s - %s" % (href, desc)
+
         return 0
 
     # Iterrate through items and write them to file

@@ -262,6 +262,8 @@ def diff(service, opts):
         raise OPMLGenError("Can't get auth data for host '%s'" % host)
 
     gr = GoogleReader()
+    gr._set_debug(opts.debug)
+
     gr.ClientLogin(login, passwd)
 
     old = {}
@@ -307,6 +309,8 @@ def main(argv):
             help="update subscriptions (old, new, all)")
     parser.add_option("--output", dest="output", default="-",
             help="save output to the FILE")
+    parser.add_option("--debug", dest="debug", action="store_true", default=False,
+            help="turn on debug messages")
 
     (opts, args) = parser.parse_args(argv)
 

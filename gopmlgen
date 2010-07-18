@@ -357,7 +357,8 @@ def main(argv):
                 print "Removed(%d):" % length
                 for href, desc in removed.iteritems():
                     print "\t%s - %s" % (href, desc)
-                print
+                if opts.update == 'all':
+                    print
 
         if opts.diff or opts.update != 'old':
             length = len(added)

@@ -178,7 +178,7 @@ class GoogleReader(gdata.service.GDataService):
         postdata = urllib.urlencode(post_params)
 
         # Override Content-Type header. There is an issue #391 in
-        # gdata-python-client.
+        # gdata-python-client. Fixed in 2.0.12.
         extra_headers = {
             'Content-Type': 'application/x-www-form-urlencoded',
         }

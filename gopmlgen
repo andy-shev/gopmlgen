@@ -79,7 +79,14 @@ class LiveJournalService(Service):
         ufd = urllib2.urlopen(self.url)
         root = ElementTree.parse(ufd)
         for elem in root.findall('body/outline'):
-            yield elem.get('text'), elem.get('xmlURL')
+            # TODO: it should take the tag in arbitrary case
+            if 'xmlUrl' in elem.keys():
+                yield elem.get('text'), elem.get('xmlUrl')
+            elif 'xmlURL' in elem.keys():
+                yield elem.get('text'), elem.get('xmlURL')
+            else:
+                raise OPMLGenError("Can't retrive URI for service '%s'" %
+                        self.name)
 
 class YouTubeService(Service):
     """ Class for YouTube service """

@@ -232,6 +232,16 @@ class OPMLGen(object):
                 return getattr(self.module, srv + "Service")()
         raise OPMLGenError("Service '%s' doesn't support" % name)
 
+def parse_exclude_list(opts):
+    """Parse given string or file to the exclude list."""
+    if opts.exclude:
+        try:
+            data = open(opts.exclude, 'rt').read()
+        except IOError:
+            data = opts.exclude
+        return data.replace(',', ' ').split()
+    return []
+
 def save_to_file(service, opts):
     """ Save items to given file """
     out = []
@@ -241,13 +251,16 @@ def save_to_file(service, opts):
     if opts.subfolder is not None:
         out.append('<outline title="%s" text="%s">' %
                 (opts.subfolder, opts.subfolder))
+    exclude = parse_exclude_list(opts)
     if opts.sort:
         for desc, href in sorted(service.opml(opts.self),
                 key=operator.itemgetter(1)):
-            out.append('<outline text="%s" xmlURL="%s" />' % (desc, href))
+            if href not in exclude:
+                out.append('<outline text="%s" xmlURL="%s" />' % (desc, href))
     else:
         for desc, href in service.opml(opts.self):
-            out.append('<outline text="%s" xmlURL="%s" />' % (desc, href))
+            if href not in exclude:
+                out.append('<outline text="%s" xmlURL="%s" />' % (desc, href))
     if opts.subfolder is not None:
         out.append("</outline>")
     out.append("</body></opml>")
@@ -286,6 +299,16 @@ def diff(service, opts):
         else:
             new[href] = desc
 
+    exclude = parse_exclude_list(opts)
+    if exclude:
+        for key in filter(lambda x: x in exclude, old.keys()):
+            LOG.debug("Exclude '%s' from the OLD list" % key)
+            del old[key]
+
+        for key in filter(lambda x: x in exclude, new.keys()):
+            LOG.debug("Exclude '%s' from the NEW list" % key)
+            del new[key]
+
     if opts.update in ('old', 'all'):
         for href in old:
             gr.RemoveSubscription(href)
@@ -316,6 +339,8 @@ def main(argv):
             help="update subscriptions (old, new, all)")
     parser.add_option("--output", dest="output", default="-",
             help="save output to the FILE")
+    parser.add_option("--exclude", dest="exclude",
+            help="exclude given URIs from a list")
     parser.add_option("--debug", dest="debug", action="store_true", default=False,
             help="turn on debug messages")
 

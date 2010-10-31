@@ -328,6 +328,10 @@ def main(argv):
     handler.setFormatter(formatter)
     LOG.addHandler(handler)
 
+    # Apply DEBUG level if asked
+    if opts.debug:
+        LOG.setLevel(logging.DEBUG)
+
     # Check --update option:
     if opts.update not in ('none', 'old', 'new', 'all'):
         LOG.fatal("Unknown parameter '%s' for option --update" % opts.update)

@@ -184,7 +184,7 @@ class GoogleReader(gdata.service.GDataService):
 
         postdata = urllib.urlencode(post_params)
 
-        # Override Content-Type header. There is an issue #391 in
+        # Override Content-Type header. There was an issue #391 in
         # gdata-python-client. Fixed in 2.0.12.
         extra_headers = {
             'Content-Type': 'application/x-www-form-urlencoded',
@@ -205,8 +205,8 @@ class GoogleReader(gdata.service.GDataService):
 
         postdata = urllib.urlencode(post_params)
 
-        # Override Content-Type header. There is an issue #391 in
-        # gdata-python-client.
+        # Override Content-Type header. There was an issue #391 in
+        # gdata-python-client. Fixed in 2.0.12.
         extra_headers = {
             'Content-Type': 'application/x-www-form-urlencoded',
         }
@@ -230,7 +230,7 @@ class OPMLGen(object):
         for srv in self.list_supported_services():
             if srv.lower() == name.lower():
                 return getattr(self.module, srv + "Service")()
-        raise OPMLGenError("Service '%s' doesn't support" % name)
+        raise OPMLGenError("Service '%s' isn't supported" % name)
 
 def parse_exclude_list(opts):
     """Parse given string or file to the exclude list."""
@@ -378,7 +378,7 @@ def main(argv):
         LOG.error(str(err))
         return 1
 
-    # Handle '--diff'
+    # Handle '--diff' and '--update'
     if opts.diff or opts.update != 'none':
         try:
             removed, added = diff(service, opts)

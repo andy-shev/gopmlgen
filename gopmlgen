@@ -124,7 +124,7 @@ class PicasaWebService(Service):
         for entry in feed.entry:
             href = entry.GetFeedLink().href.replace('api', 'base')
             text = entry.title.text
-            if text.isdigit() and len(entry.nickname.text) and \
+            if text.isdigit() and entry.nickname.text.strip() and \
                     not entry.nickname.text.isdigit():
                 text = entry.nickname.text
             yield text, href

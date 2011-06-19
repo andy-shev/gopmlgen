@@ -7,7 +7,7 @@ OPML generator for Google Reader
 """
 
 __author__ = "Andy Shevchenko <andy.shevchenko@gmail.com>"
-__version__ = "0.2.0"
+__version__ = "0.2.1"
 __license__ = "GPLv2"
 
 import os
@@ -123,7 +123,11 @@ class PicasaWebService(Service):
         feed = self.client.GetContacts()
         for entry in feed.entry:
             href = entry.GetFeedLink().href.replace('api', 'base')
-            yield entry.title.text, href
+            text = entry.title.text
+            if text.isdigit() and len(entry.nickname.text) and \
+                    not entry.nickname.text.isdigit():
+                text = entry.nickname.text
+            yield text, href
         if self.ownfeed:
             text = feed.title.text
             href = feed.GetFeedLink().href

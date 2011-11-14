@@ -275,7 +275,7 @@ def save_to_file(service, opts):
         fd = open(opts.output, 'w')
 
     for line in out:
-        fd.write("%s\n" % line.encode('utf-8'))
+        fd.write("%s\n" % line)
     fd.close()
 
 def diff(service, opts):
@@ -319,7 +319,7 @@ def diff(service, opts):
 
     if opts.update in ('new', 'all'):
         for href in new:
-            gr.AddSubscription(href, new[href].encode('utf-8'), opts.subfolder)
+            gr.AddSubscription(href, new[href], opts.subfolder)
 
     return old, new
 

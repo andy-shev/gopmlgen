@@ -129,7 +129,10 @@ class PicasaWebService(Service):
                 text = entry.title.text
             yield text, href
         if self.ownfeed:
-            text = feed.title.text
+            if feed.nickname.text.strip() and not feed.nickname.text.isdigit():
+                text = feed.nickname.text
+            else:
+                text = feed.title.text
             href = feed.GetFeedLink().href
             yield text, href.replace('api', 'base').replace('/contacts', '')
 

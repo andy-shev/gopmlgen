@@ -81,9 +81,9 @@ class LiveJournalService(Service):
         for elem in root.findall('body/outline'):
             # TODO: it should take the tag in arbitrary case
             if 'xmlUrl' in elem.keys():
-                yield elem.get('text'), elem.get('xmlUrl')
+                yield elem.get('text').encode('utf-8'), elem.get('xmlUrl')
             elif 'xmlURL' in elem.keys():
-                yield elem.get('text'), elem.get('xmlURL')
+                yield elem.get('text').encode('utf-8'), elem.get('xmlURL')
             else:
                 raise OPMLGenError("Can't retrive URI for service '%s'" %
                         self.name)
